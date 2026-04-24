@@ -1,6 +1,6 @@
 import React from 'react';
 import Interact from './pages/Interact';
-import './App.css';
+
 
 function App() {
   return (
