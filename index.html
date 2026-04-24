@@ -1,0 +1,1277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BORK — Your AI Companion</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #F5F0E8;
+    --warm-white: #FDFAF5;
+    --brown-dark: #2C1810;
+    --brown-mid: #6B3A2A;
+    --brown-light: #C4956A;
+    --amber: #E8A84C;
+    --amber-light: #F5C878;
+    --accent-green: #4CAF7D;
+    --accent-blue: #5B8DEF;
+    --accent-pink: #E86B8A;
+    --accent-purple: #8B6BE8;
+    --fur-light: #D4956A;
+    --fur-dark: #8B5E3C;
+    --nose: #2C1810;
+    --eye-color: #2C1810;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--warm-white);
+    color: var(--brown-dark);
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* Custom cursor */
+  #cursor {
+    position: fixed;
+    width: 20px; height: 20px;
+    background: var(--amber);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: transform 0.1s, width 0.2s, height 0.2s, background 0.2s;
+    mix-blend-mode: multiply;
+  }
+  #cursor.big { width: 40px; height: 40px; }
+  #cursor-trail {
+    position: fixed;
+    width: 8px; height: 8px;
+    background: var(--brown-light);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9998;
+    transform: translate(-50%, -50%);
+    opacity: 0.5;
+    transition: left 0.15s, top 0.15s;
+  }
+
+  /* NAVBAR */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0;
+    padding: 1.2rem 3rem;
+    display: flex; align-items: center; justify-content: space-between;
+    z-index: 100;
+    background: rgba(253,250,245,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(196,149,106,0.15);
+  }
+  .nav-logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.6rem;
+    color: var(--brown-dark);
+    letter-spacing: -1px;
+  }
+  .nav-logo span { color: var(--amber); }
+  .nav-links { display: flex; gap: 2.5rem; }
+  .nav-links a {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--brown-mid);
+    text-decoration: none;
+    letter-spacing: 0.5px;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--amber); }
+  .nav-cta {
+    background: var(--brown-dark);
+    color: var(--cream) !important;
+    padding: 0.5rem 1.4rem;
+    border-radius: 50px;
+    font-weight: 500;
+  }
+  .nav-cta:hover { background: var(--amber) !important; color: var(--brown-dark) !important; }
+
+  /* HERO */
+  #hero {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    padding: 5rem 3rem 3rem;
+  }
+  .hero-bg {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 60% 70% at 65% 50%, #F5E6D0 0%, transparent 70%),
+                radial-gradient(ellipse 40% 40% at 20% 80%, #E8F4EC 0%, transparent 60%),
+                var(--warm-white);
+  }
+  .hero-content {
+    position: relative; z-index: 2;
+    flex: 1;
+    max-width: 520px;
+    padding-right: 2rem;
+  }
+  .hero-tag {
+    display: inline-block;
+    background: var(--amber);
+    color: var(--brown-dark);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 0.35rem 1rem;
+    border-radius: 50px;
+    margin-bottom: 1.5rem;
+  }
+  .hero-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(3rem, 6vw, 5rem);
+    font-weight: 800;
+    line-height: 1.0;
+    letter-spacing: -2px;
+    margin-bottom: 1.5rem;
+    color: var(--brown-dark);
+  }
+  .hero-title .line2 { color: var(--brown-light); }
+  .hero-sub {
+    font-size: 1.1rem;
+    font-weight: 300;
+    color: var(--brown-mid);
+    line-height: 1.7;
+    margin-bottom: 2.5rem;
+    max-width: 400px;
+  }
+  .hero-actions { display: flex; gap: 1rem; align-items: center; }
+  .btn-primary {
+    background: var(--brown-dark);
+    color: var(--cream);
+    padding: 0.9rem 2rem;
+    border-radius: 50px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    border: none;
+    cursor: none;
+    transition: transform 0.2s, background 0.2s;
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    text-decoration: none;
+  }
+  .btn-primary:hover { background: var(--amber); color: var(--brown-dark); transform: translateY(-2px); }
+  .btn-ghost {
+    color: var(--brown-mid);
+    padding: 0.9rem 1.5rem;
+    border-radius: 50px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    border: 1.5px solid rgba(107,58,42,0.2);
+    cursor: none;
+    transition: all 0.2s;
+    background: transparent;
+    text-decoration: none;
+    display: inline-flex; align-items: center; gap: 0.5rem;
+  }
+  .btn-ghost:hover { border-color: var(--amber); color: var(--amber); }
+
+  /* DOG ARENA */
+  #dog-arena {
+    position: relative; z-index: 2;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 500px;
+  }
+  .arena-bg-circle {
+    position: absolute;
+    width: 420px; height: 420px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #F5E8D0 0%, #EDD5B0 100%);
+    opacity: 0.6;
+  }
+  #dog-svg-container {
+    position: relative; z-index: 3;
+    filter: drop-shadow(0 20px 40px rgba(44,24,16,0.15));
+    transition: transform 0.05s linear;
+    cursor: none;
+  }
+  
+  /* Mood badge */
+  #mood-badge {
+    position: absolute;
+    top: -20px; right: -10px;
+    background: white;
+    border-radius: 20px;
+    padding: 0.4rem 1rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--brown-dark);
+    box-shadow: 0 4px 20px rgba(44,24,16,0.15);
+    border: 1.5px solid rgba(196,149,106,0.3);
+    transition: all 0.3s;
+    z-index: 10;
+  }
+  
+  /* Status bars */
+  #status-panel {
+    position: absolute;
+    left: -200px; top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    z-index: 10;
+  }
+  .stat-bar {
+    background: white;
+    border-radius: 16px;
+    padding: 0.6rem 1rem;
+    width: 160px;
+    box-shadow: 0 4px 16px rgba(44,24,16,0.08);
+    border: 1px solid rgba(196,149,106,0.2);
+  }
+  .stat-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--brown-mid);
+    margin-bottom: 0.3rem;
+    display: flex; justify-content: space-between;
+  }
+  .stat-track {
+    height: 6px;
+    background: rgba(196,149,106,0.2);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .stat-fill {
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.5s ease;
+  }
+  .fill-happy { background: linear-gradient(90deg, var(--amber), var(--amber-light)); }
+  .fill-energy { background: linear-gradient(90deg, var(--accent-green), #8DE8B0); }
+  .fill-hunger { background: linear-gradient(90deg, var(--accent-pink), #F5A0BB); }
+  .fill-love { background: linear-gradient(90deg, var(--accent-purple), #B8A0F5); }
+
+  /* PLAYZONE SECTION */
+  #playzone {
+    padding: 6rem 3rem;
+    background: var(--cream);
+    position: relative;
+    overflow: hidden;
+  }
+  .section-eyebrow {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--brown-light);
+    margin-bottom: 0.8rem;
+  }
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2rem, 4vw, 3.2rem);
+    font-weight: 800;
+    letter-spacing: -1.5px;
+    margin-bottom: 1rem;
+    color: var(--brown-dark);
+    line-height: 1.1;
+  }
+
+  .play-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1.5rem;
+    margin-top: 3rem;
+  }
+  .play-card {
+    background: var(--warm-white);
+    border-radius: 24px;
+    padding: 2rem;
+    border: 1.5px solid rgba(196,149,106,0.2);
+    transition: transform 0.2s, box-shadow 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .play-card:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(44,24,16,0.1); }
+  .play-card-icon {
+    width: 52px; height: 52px;
+    border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.6rem;
+    margin-bottom: 1.2rem;
+  }
+  .play-card h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: var(--brown-dark);
+  }
+  .play-card p { font-size: 0.9rem; color: var(--brown-mid); line-height: 1.6; }
+  .play-card-btn {
+    margin-top: 1.5rem;
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--brown-dark);
+    text-decoration: none;
+    cursor: none;
+    padding: 0.5rem 1.2rem;
+    background: var(--cream);
+    border-radius: 50px;
+    border: 1.5px solid rgba(44,24,16,0.1);
+    transition: all 0.2s;
+  }
+  .play-card-btn:hover { background: var(--amber); border-color: var(--amber); }
+
+  /* INTERACTIVE ZONE */
+  #interact {
+    padding: 6rem 3rem;
+    background: var(--warm-white);
+    display: flex;
+    gap: 4rem;
+    align-items: flex-start;
+  }
+  .interact-left { flex: 1; }
+  .interact-right {
+    flex: 1;
+    background: var(--cream);
+    border-radius: 28px;
+    padding: 2.5rem;
+    border: 1.5px solid rgba(196,149,106,0.2);
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* DOG PLAYGROUND */
+  #dog-playground {
+    width: 100%;
+    height: 360px;
+    background: radial-gradient(ellipse 80% 60% at 50% 100%, #D4C4A8 0%, #EDE0C8 100%);
+    border-radius: 20px;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+    cursor: none;
+  }
+  /* Ground */
+  #dog-playground::after {
+    content: '';
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 80px;
+    background: linear-gradient(0deg, #A8855A 0%, transparent 100%);
+    border-radius: 0 0 20px 20px;
+  }
+  
+  #play-dog {
+    position: absolute;
+    bottom: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    transition: left 0.3s ease, bottom 0.2s;
+    z-index: 5;
+    filter: drop-shadow(0 8px 16px rgba(44,24,16,0.2));
+  }
+
+  /* Action buttons */
+  .action-row {
+    display: flex;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+  }
+  .action-btn {
+    flex: 1;
+    min-width: 80px;
+    background: white;
+    border: 1.5px solid rgba(196,149,106,0.25);
+    border-radius: 14px;
+    padding: 0.7rem 0.5rem;
+    display: flex; flex-direction: column;
+    align-items: center; gap: 0.3rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--brown-mid);
+    cursor: none;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .action-btn span.icon { font-size: 1.4rem; }
+  .action-btn:hover { background: var(--amber); color: var(--brown-dark); border-color: var(--amber); transform: translateY(-2px); }
+  .action-btn:active { transform: scale(0.95); }
+
+  /* CHAT SECTION */
+  #chat-section {
+    padding: 6rem 3rem;
+    background: var(--brown-dark);
+    color: var(--cream);
+    position: relative;
+    overflow: hidden;
+  }
+  .chat-bg-decor {
+    position: absolute;
+    width: 500px; height: 500px;
+    border-radius: 50%;
+    background: rgba(232,168,76,0.06);
+    top: -100px; right: -100px;
+  }
+  .chat-layout {
+    display: flex;
+    gap: 4rem;
+    align-items: flex-start;
+    position: relative; z-index: 2;
+  }
+  .chat-info { flex: 1; }
+  .chat-info .section-eyebrow { color: var(--amber); }
+  .chat-info .section-title { color: var(--cream); }
+  .chat-info p { font-size: 1rem; color: rgba(245,240,232,0.65); line-height: 1.7; margin-top: 1rem; }
+
+  .chat-box {
+    flex: 1.2;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(196,149,106,0.2);
+    border-radius: 24px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 420px;
+  }
+  .chat-header {
+    background: rgba(255,255,255,0.07);
+    padding: 1rem 1.5rem;
+    display: flex; align-items: center; gap: 0.8rem;
+    border-bottom: 1px solid rgba(196,149,106,0.15);
+  }
+  .chat-avatar {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--amber);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem;
+  }
+  .chat-name { font-weight: 600; font-size: 0.9rem; color: var(--cream); }
+  .chat-status { font-size: 0.75rem; color: var(--accent-green); font-weight: 500; }
+  .chat-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--accent-green); margin-right: 5px; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  
+  .chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.2rem 1.5rem;
+    display: flex; flex-direction: column; gap: 0.8rem;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(196,149,106,0.3) transparent;
+  }
+  .msg { display: flex; gap: 0.6rem; align-items: flex-end; }
+  .msg.user { flex-direction: row-reverse; }
+  .msg-bubble {
+    max-width: 75%;
+    padding: 0.7rem 1rem;
+    border-radius: 18px;
+    font-size: 0.88rem;
+    line-height: 1.5;
+  }
+  .msg.dog .msg-bubble { background: rgba(255,255,255,0.1); color: var(--cream); border-bottom-left-radius: 4px; }
+  .msg.user .msg-bubble { background: var(--amber); color: var(--brown-dark); border-bottom-right-radius: 4px; font-weight: 500; }
+  .msg-avatar { width: 28px; height: 28px; border-radius: 50%; background: rgba(196,149,106,0.3); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; }
+
+  .chat-input-row {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid rgba(196,149,106,0.15);
+    display: flex; gap: 0.8rem;
+  }
+  #chat-input {
+    flex: 1;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(196,149,106,0.2);
+    border-radius: 50px;
+    padding: 0.65rem 1.2rem;
+    color: var(--cream);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  #chat-input::placeholder { color: rgba(245,240,232,0.35); }
+  #chat-input:focus { border-color: var(--amber); }
+  #send-btn {
+    background: var(--amber);
+    border: none;
+    border-radius: 50px;
+    padding: 0.65rem 1.4rem;
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--brown-dark);
+    cursor: none;
+    transition: transform 0.2s, background 0.2s;
+  }
+  #send-btn:hover { transform: scale(1.05); background: var(--amber-light); }
+
+  /* FEATURES SHOWCASE */
+  #features {
+    padding: 6rem 3rem;
+    background: var(--cream);
+  }
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+    margin-top: 3rem;
+  }
+  .feat-card {
+    background: var(--warm-white);
+    border-radius: 20px;
+    padding: 1.8rem;
+    border: 1.5px solid rgba(196,149,106,0.2);
+    transition: all 0.25s;
+    position: relative;
+  }
+  .feat-card:hover { transform: translateY(-5px); box-shadow: 0 16px 40px rgba(44,24,16,0.1); }
+  .feat-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 3rem;
+    font-weight: 800;
+    color: rgba(196,149,106,0.2);
+    line-height: 1;
+    margin-bottom: 0.5rem;
+  }
+  .feat-card h4 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1rem; margin-bottom: 0.5rem; }
+  .feat-card p { font-size: 0.85rem; color: var(--brown-mid); line-height: 1.6; }
+
+  /* TRICKS PANEL */
+  #tricks {
+    padding: 6rem 3rem;
+    background: var(--warm-white);
+  }
+  .tricks-layout {
+    display: flex; gap: 4rem; align-items: center; margin-top: 3rem;
+  }
+  .tricks-list { flex: 1; display: flex; flex-direction: column; gap: 1rem; }
+  .trick-item {
+    display: flex; align-items: center; gap: 1.2rem;
+    background: var(--cream);
+    border-radius: 16px;
+    padding: 1.2rem 1.5rem;
+    border: 1.5px solid rgba(196,149,106,0.2);
+    cursor: none;
+    transition: all 0.2s;
+  }
+  .trick-item:hover { background: var(--amber); transform: translateX(8px); }
+  .trick-item:hover .trick-name { color: var(--brown-dark); }
+  .trick-icon { font-size: 1.5rem; }
+  .trick-name { font-weight: 600; font-size: 0.95rem; color: var(--brown-dark); }
+  .trick-desc { font-size: 0.8rem; color: var(--brown-mid); margin-top: 0.1rem; }
+  .trick-info { flex: 1; }
+  .trick-badge {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 0.25rem 0.7rem;
+    border-radius: 50px;
+    background: rgba(44,24,16,0.08);
+    color: var(--brown-mid);
+  }
+  .trick-preview {
+    flex: 1;
+    background: var(--cream);
+    border-radius: 24px;
+    height: 360px;
+    display: flex; align-items: center; justify-content: center;
+    border: 1.5px solid rgba(196,149,106,0.2);
+    position: relative;
+    overflow: hidden;
+  }
+  #trick-preview-svg { transition: all 0.3s; }
+
+  /* FOOTER */
+  footer {
+    background: var(--brown-dark);
+    color: var(--cream);
+    padding: 3rem;
+    text-align: center;
+  }
+  footer .logo { font-family: 'Syne', sans-serif; font-size: 1.8rem; font-weight: 800; letter-spacing: -1px; margin-bottom: 0.5rem; }
+  footer .logo span { color: var(--amber); }
+  footer p { font-size: 0.85rem; opacity: 0.45; margin-top: 0.5rem; }
+
+  /* Animations */
+  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+  @keyframes wagTail { 0%,100%{transform:rotate(-15deg)} 50%{transform:rotate(15deg)} }
+  @keyframes blink { 0%,90%,100%{transform:scaleY(1)} 95%{transform:scaleY(0.1)} }
+  @keyframes bounce { 0%,100%{transform:translateY(0)} 40%{transform:translateY(-30px)} }
+  @keyframes shake { 0%,100%{transform:rotate(0)} 20%{transform:rotate(-8deg)} 40%{transform:rotate(8deg)} 60%{transform:rotate(-6deg)} 80%{transform:rotate(6deg)} }
+  @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+  @keyframes heartPop { 0%{transform:scale(0);opacity:1} 50%{transform:scale(1.3);opacity:1} 100%{transform:scale(1);opacity:0} }
+  @keyframes slide-in { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+
+  .floating { animation: float 3s ease-in-out infinite; }
+  .wag { animation: wagTail 0.6s ease-in-out infinite; }
+
+  /* Scroll reveal */
+  .reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  .reveal.visible { opacity: 1; transform: none; }
+
+  /* Snack items */
+  .food-item {
+    position: absolute;
+    font-size: 1.8rem;
+    pointer-events: none;
+    animation: foodDrop 1.5s ease-in forwards;
+    z-index: 20;
+  }
+  @keyframes foodDrop {
+    0% { transform: translateY(-40px) scale(1); opacity: 1; }
+    80% { transform: translateY(0px) scale(1.2); opacity: 1; }
+    100% { transform: translateY(10px) scale(0); opacity: 0; }
+  }
+
+  .heart-pop {
+    position: absolute;
+    font-size: 1.5rem;
+    animation: heartPop 1s ease forwards;
+    pointer-events: none;
+    z-index: 30;
+  }
+
+  /* Loading dots */
+  .typing-dots span {
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: rgba(245,240,232,0.5);
+    margin: 0 2px;
+    animation: typingDot 1.2s infinite;
+  }
+  .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes typingDot { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-6px)} }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    #hero { flex-direction: column; padding-top: 7rem; }
+    .features-grid { grid-template-columns: repeat(2, 1fr); }
+    .play-grid { grid-template-columns: 1fr 1fr; }
+    #interact, #chat-section .chat-layout, .tricks-layout { flex-direction: column; gap: 2rem; }
+    #status-panel { display: none; }
+    nav { padding: 1rem 1.5rem; }
+    .nav-links { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div id="cursor"></div>
+<div id="cursor-trail"></div>
+
+<nav>
+  <div class="nav-logo">B<span>.</span>ORK</div>
+  <div class="nav-links">
+    <a href="#playzone">Play</a>
+    <a href="#interact">Interact</a>
+    <a href="#chat-section">Chat</a>
+    <a href="#tricks">Tricks</a>
+    <a href="#interact" class="nav-cta">Meet Bork →</a>
+  </div>
+</nav>
+
+<section id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-content reveal">
+    <div class="hero-tag">✦ AI Companion 2026</div>
+    <h1 class="hero-title">
+      Meet your<br>
+      <span class="line2">forever</span><br>
+      best friend.
+    </h1>
+    <p class="hero-sub">Bork is an emotionally intelligent AI dog that learns, grows, and connects with you in ways never possible before. Real personality. Real bond.</p>
+    <div class="hero-actions">
+      <a href="#interact" class="btn-primary">Play with Bork ↓</a>
+      <a href="#chat-section" class="btn-ghost">💬 Chat with him</a>
+    </div>
+  </div>
+  
+  <div id="dog-arena">
+    <div class="arena-bg-circle"></div>
+    <div id="status-panel">
+      <div class="stat-bar">
+        <div class="stat-label"><span>Happiness</span><span id="happy-val">85%</span></div>
+        <div class="stat-track"><div class="stat-fill fill-happy" id="happy-fill" style="width:85%"></div></div>
+      </div>
+      <div class="stat-bar">
+        <div class="stat-label"><span>Energy</span><span id="energy-val">72%</span></div>
+        <div class="stat-track"><div class="stat-fill fill-energy" id="energy-fill" style="width:72%"></div></div>
+      </div>
+      <div class="stat-bar">
+        <div class="stat-label"><span>Hunger</span><span id="hunger-val">40%</span></div>
+        <div class="stat-track"><div class="stat-fill fill-hunger" id="hunger-fill" style="width:40%"></div></div>
+      </div>
+      <div class="stat-bar">
+        <div class="stat-label"><span>Love</span><span id="love-val">90%</span></div>
+        <div class="stat-track"><div class="stat-fill fill-love" id="love-fill" style="width:90%"></div></div>
+      </div>
+    </div>
+
+    <div id="dog-svg-container" class="floating">
+      <div id="mood-badge">😊 Happy</div>
+      <svg id="main-dog" width="260" height="300" viewBox="0 0 260 300" xmlns="http://www.w3.org/2000/svg">
+        <g id="tail" style="transform-origin: 210px 185px; animation: wagTail 0.6s ease-in-out infinite;">
+          <path d="M205 185 Q240 165 235 140 Q230 125 215 130 Q225 140 220 155 Q215 170 205 180" fill="#C4956A" stroke="#A87850" stroke-width="1.5"/>
+        </g>
+        <ellipse cx="125" cy="195" rx="75" ry="60" fill="#D4956A"/>
+        <ellipse cx="125" cy="210" rx="45" ry="38" fill="#E8C4A0"/>
+        <ellipse cx="80" cy="248" rx="20" ry="14" fill="#C4956A"/>
+        <ellipse cx="170" cy="248" rx="20" ry="14" fill="#C4956A"/>
+        <ellipse cx="80" cy="260" rx="18" ry="10" fill="#B87850"/>
+        <ellipse cx="170" cy="260" rx="18" ry="10" fill="#B87850"/>
+        <rect x="92" y="230" width="24" height="40" rx="12" fill="#D4956A"/>
+        <rect x="140" y="230" width="24" height="40" rx="12" fill="#D4956A"/>
+        <ellipse cx="104" cy="270" rx="16" ry="9" fill="#B87850"/>
+        <ellipse cx="152" cy="270" rx="16" ry="9" fill="#B87850"/>
+        <ellipse cx="125" cy="145" rx="35" ry="28" fill="#D4956A"/>
+        <ellipse cx="125" cy="105" rx="58" ry="52" fill="#D4956A"/>
+        <path d="M70 78 Q45 45 55 20 Q65 5 82 25 Q88 50 82 75" fill="#B87850" stroke="#A06840" stroke-width="1"/>
+        <path d="M180 78 Q205 45 195 20 Q185 5 168 25 Q162 50 168 75" fill="#B87850" stroke="#A06840" stroke-width="1"/>
+        <path d="M72 72 Q55 50 62 32 Q68 20 78 33 Q82 52 78 70" fill="#E8A890" opacity="0.7"/>
+        <path d="M178 72 Q195 50 188 32 Q182 20 172 33 Q168 52 172 70" fill="#E8A890" opacity="0.7"/>
+        <ellipse cx="125" cy="118" rx="32" ry="24" fill="#E8C4A0"/>
+        <ellipse cx="125" cy="107" rx="13" ry="9" fill="#2C1810"/>
+        <ellipse cx="119" cy="103" rx="4" ry="3" fill="rgba(255,255,255,0.4)"/>
+        <g id="left-eye" style="animation: blink 4s ease-in-out infinite;">
+          <ellipse cx="101" cy="92" rx="13" ry="13" fill="white"/>
+          <ellipse cx="101" cy="92" rx="9" ry="9" fill="#2C1810"/>
+          <ellipse cx="105" cy="88" rx="4" ry="4" fill="white"/>
+          <ellipse cx="96" cy="96" rx="2" ry="2" fill="rgba(255,255,255,0.4)"/>
+        </g>
+        <g id="right-eye" style="animation: blink 4s ease-in-out infinite; animation-delay: 0.1s;">
+          <ellipse cx="149" cy="92" rx="13" ry="13" fill="white"/>
+          <ellipse cx="149" cy="92" rx="9" ry="9" fill="#2C1810"/>
+          <ellipse cx="153" cy="88" rx="4" ry="4" fill="white"/>
+          <ellipse cx="144" cy="96" rx="2" ry="2" fill="rgba(255,255,255,0.4)"/>
+        </g>
+        <path id="left-brow" d="M88 79 Q101 73 114 79" stroke="#8B5E3C" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <path id="right-brow" d="M136 79 Q149 73 162 79" stroke="#8B5E3C" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <path id="mouth" d="M112 130 Q125 140 138 130" stroke="#8B5E3C" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <g id="tongue" opacity="1">
+          <ellipse cx="125" cy="138" rx="11" ry="8" fill="#E86B8A"/>
+          <line x1="125" y1="130" x2="125" y2="146" stroke="#C85070" stroke-width="1.5"/>
+        </g>
+        <rect x="95" y="148" width="60" height="14" rx="7" fill="#5B8DEF"/>
+        <rect x="120" y="148" width="10" height="14" rx="3" fill="#E8A84C"/>
+        <ellipse cx="125" cy="70" rx="16" ry="12" fill="#B87850" opacity="0.6"/>
+        <ellipse cx="80" cy="115" rx="14" ry="9" fill="#E8A890" opacity="0.5"/>
+        <ellipse cx="170" cy="115" rx="14" ry="9" fill="#E8A890" opacity="0.5"/>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<section id="playzone">
+  <div class="reveal">
+    <p class="section-eyebrow">✦ Playzone</p>
+    <h2 class="section-title">More than a pet.<br>A whole world.</h2>
+    <p style="max-width:500px;color:var(--brown-mid);line-height:1.7;margin-top:0.5rem;">Bork comes with a rich universe of activities. The more you play, the more he grows — new animations, new responses, new surprises.</p>
+  </div>
+  <div class="play-grid reveal">
+    
+    <div class="play-card" style="border: 2px solid var(--accent-green); background: #fafffb;">
+      <div class="play-card-icon" style="background:var(--accent-green); color: white;">🌐</div>
+      <h3>My Global Site</h3>
+      <p>Visit my main page to see more projects and updates from the world of BORK.</p>
+     <a href="/app.html" class="play-card-btn" style="background:var(--accent-green); color:white; border:none;">
+  Meet Hachi →
+</a>
+    </div>
+
+    <div class="play-card">
+      <div class="play-card-icon" style="background:#FFF3E0;">🎾</div>
+      <h3>Fetch & Play</h3>
+      <p>Throw balls, frisbees, and toys. Watch Bork sprint, leap, and bring it back with pure joy every single time.</p>
+      <a href="#interact" class="play-card-btn">Play now →</a>
+    </div>
+    <div class="play-card">
+      <div class="play-card-icon" style="background:#E8F5E9;">🍖</div>
+      <h3>Feed & Treat</h3>
+      <p>Choose from 20+ foods and snacks. Bork reacts differently to each one — watch him go crazy for bacon bits.</p>
+      <a href="#interact" class="play-card-btn">Feed him →</a>
+    </div>
+    <div class="play-card">
+      <div class="play-card-icon" style="background:#EDE7F6;">🎓</div>
+      <h3>Teach Tricks</h3>
+      <p>Sit, shake, roll over, moonwalk? Each trick unlocks new animations and personality quirks. Train daily for bonuses.</p>
+      <a href="#tricks" class="play-card-btn">Teach tricks →</a>
+    </div>
+    <div class="play-card">
+      <div class="play-card-icon" style="background:#E3F2FD;">💬</div>
+      <h3>AI Chat</h3>
+      <p>Have real conversations with Bork. He remembers your name, your favourite things, and even your inside jokes.</p>
+      <a href="#chat-section" class="play-card-btn">Say hello →</a>
+    </div>
+    <div class="play-card">
+      <div class="play-card-icon" style="background:#FCE4EC;">🛁</div>
+      <h3>Grooming</h3>
+      <p>Bath time, brushing, and styling. Keep Bork's coat shiny — neglect it and he'll give you the ultimate puppy eyes.</p>
+      <a href="#interact" class="play-card-btn">Groom him →</a>
+    </div>
+    <div class="play-card">
+      <div class="play-card-icon" style="background:#FFF8E1;">🌙</div>
+      <h3>Sleep & Dream</h3>
+      <p>Bork follows a real day/night cycle. When it's bed time, he yawns, curls up, and you can even hear him dream.</p>
+      <a href="#interact" class="play-card-btn">Watch him sleep →</a>
+    </div>
+  </div>
+</section>
+
+<section id="interact">
+  <div class="interact-left reveal">
+    <p class="section-eyebrow">✦ Interactive Zone</p>
+    <h2 class="section-title">Your touch<br>changes<br>everything.</h2>
+    <p style="color:var(--brown-mid);line-height:1.7;margin-top:1rem;margin-bottom:2rem;">Bork reacts in real-time to everything you do. Every action builds your bond. Your relationship score unlocks new abilities.</p>
+    <div style="display:flex;flex-direction:column;gap:1rem;">
+      <div style="display:flex;align-items:center;gap:1rem;">
+        <div style="width:40px;height:40px;border-radius:12px;background:var(--amber);display:flex;align-items:center;justify-content:center;flex-shrink:0;">🐾</div>
+        <div>
+          <div style="font-weight:600;font-size:0.9rem;">Mouse tracking</div>
+          <div style="font-size:0.82rem;color:var(--brown-mid);">Bork's eyes follow your cursor everywhere</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:1rem;">
+        <div style="width:40px;height:40px;border-radius:12px;background:#E8F5E9;display:flex;align-items:center;justify-content:center;flex-shrink:0;">💝</div>
+        <div>
+          <div style="font-weight:600;font-size:0.9rem;">Emotional memory</div>
+          <div style="font-size:0.82rem;color:var(--brown-mid);">He remembers if you were kind or mean yesterday</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:1rem;">
+        <div style="width:40px;height:40px;border-radius:12px;background:#EDE7F6;display:flex;align-items:center;justify-content:center;flex-shrink:0;">🧠</div>
+        <div>
+          <div style="font-weight:600;font-size:0.9rem;">AI personality engine</div>
+          <div style="font-size:0.82rem;color:var(--brown-mid);">Powered by Claude — genuinely unpredictable</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="interact-right reveal">
+    <div id="dog-playground">
+      <div style="position:absolute;bottom:0;left:0;right:0;height:80px;background:linear-gradient(0deg,#8B6940 0%,transparent 100%);border-radius:0 0 20px 20px;z-index:1;"></div>
+      <div style="position:absolute;bottom:76px;left:20px;font-size:1.2rem;z-index:2;">🌿</div>
+      <div style="position:absolute;bottom:76px;left:60px;font-size:0.9rem;z-index:2;">🌿</div>
+      <div style="position:absolute;bottom:76px;right:30px;font-size:1.1rem;z-index:2;">🌿</div>
+      <div style="position:absolute;bottom:76px;right:80px;font-size:0.8rem;z-index:2;">🌿</div>
+      <div style="position:absolute;top:20px;right:30px;font-size:2.4rem;">☀️</div>
+      
+      <div id="play-dog">
+        <svg width="120" height="130" viewBox="0 0 260 300" xmlns="http://www.w3.org/2000/svg">
+          <g id="playground-tail" style="transform-origin: 210px 185px;">
+            <path d="M205 185 Q240 165 235 140 Q230 125 215 130 Q225 140 220 155 Q215 170 205 180" fill="#C4956A"/>
+          </g>
+          <ellipse cx="125" cy="195" rx="75" ry="60" fill="#D4956A"/>
+          <ellipse cx="125" cy="210" rx="45" ry="38" fill="#E8C4A0"/>
+          <rect x="92" y="230" width="24" height="40" rx="12" fill="#D4956A"/>
+          <rect x="140" y="230" width="24" height="40" rx="12" fill="#D4956A"/>
+          <ellipse cx="125" cy="105" rx="58" ry="52" fill="#D4956A"/>
+          <ellipse cx="125" cy="118" rx="32" ry="24" fill="#E8C4A0"/>
+          <ellipse cx="125" cy="107" rx="13" ry="9" fill="#2C1810"/>
+          <circle cx="101" cy="92" r="6" fill="#2C1810"/>
+          <circle cx="149" cy="92" r="6" fill="#2C1810"/>
+        </svg>
+      </div>
+    </div>
+    
+    <div class="action-row">
+      <button class="action-btn" onclick="playAction('ball')">
+        <span class="icon">🎾</span>
+        <span>Throw Ball</span>
+      </button>
+      <button class="action-btn" onclick="playAction('bone')">
+        <span class="icon">🍖</span>
+        <span>Give Bone</span>
+      </button>
+      <button class="action-btn" onclick="playAction('pet')">
+        <span class="icon">🖐️</span>
+        <span>Pet Him</span>
+      </button>
+      <button class="action-btn" onclick="playAction('love')">
+        <span class="icon">❤️</span>
+        <span>Give Love</span>
+      </button>
+    </div>
+  </div>
+</section>
+
+<section id="chat-section">
+  <div class="chat-bg-decor"></div>
+  <div class="chat-layout">
+    <div class="chat-info reveal">
+      <p class="section-eyebrow">✦ AI Chat</p>
+      <h2 class="section-title">Talk to your<br>buddy.</h2>
+      <p>Ask Bork about his day, tell him your secrets, or ask for a joke. He’s always listening and learning more about you.</p>
+    </div>
+    <div class="chat-box reveal">
+      <div class="chat-header">
+        <div class="chat-avatar">🐾</div>
+        <div>
+          <div class="chat-name">Bork the AI</div>
+          <div class="chat-status"><span class="chat-dot"></span>Online & wagging</div>
+        </div>
+      </div>
+      <div class="chat-messages" id="chat-messages">
+        <div class="msg dog">
+          <div class="msg-avatar">🐾</div>
+          <div class="msg-bubble">Woof! I've been waiting for you! What should we do today? 🎾</div>
+        </div>
+      </div>
+      <div class="chat-input-row">
+        <input type="text" id="chat-input" placeholder="Type a message to Bork...">
+        <button id="send-btn" onclick="sendMessage()">Send</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="features">
+  <div class="reveal" style="text-align:center;">
+    <p class="section-eyebrow">✦ Inside Bork</p>
+    <h2 class="section-title">What makes him<br>special?</h2>
+  </div>
+  <div class="features-grid reveal">
+    <div class="feat-card">
+      <div class="feat-num">01</div>
+      <h4>Persistent Memory</h4>
+      <p>Bork remembers your conversations from weeks ago. He builds a mental model of your personality.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-num">02</div>
+      <h4>Emotion Engine</h4>
+      <p>He experiences joy, sadness, excitement, and boredom based on how you interact with him.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-num">03</div>
+      <h4>Visual Learning</h4>
+      <p>Bork can "see" through your interactions, reacting to your speed, patterns, and style of play.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-num">04</div>
+      <h4>Dynamic Growth</h4>
+      <p>He isn't just a static app. He levels up, learns new tricks, and unlocks new vocabularies.</p>
+    </div>
+  </div>
+</section>
+
+<section id="tricks">
+  <div class="reveal">
+    <p class="section-eyebrow">✦ Training Center</p>
+    <h2 class="section-title">Teach him something<br>new today.</h2>
+  </div>
+  <div class="tricks-layout reveal">
+    <div class="tricks-list">
+      <div class="trick-item" onclick="performTrick('spin')">
+        <div class="trick-icon">🔄</div>
+        <div class="trick-info">
+          <div class="trick-name">Spin Around <span class="trick-badge">Unlocked</span></div>
+          <div class="trick-desc">Bork chases his tail in a dizzying circle.</div>
+        </div>
+      </div>
+      <div class="trick-item" onclick="performTrick('jump')">
+        <div class="trick-icon">🚀</div>
+        <div class="trick-info">
+          <div class="trick-name">High Jump <span class="trick-badge">Unlocked</span></div>
+          <div class="trick-desc">An athletic leap into the air for a treat.</div>
+        </div>
+      </div>
+      <div class="trick-item" onclick="performTrick('shake')">
+        <div class="trick-icon">🤝</div>
+        <div class="trick-info">
+          <div class="trick-name">Shake Paws <span class="trick-badge">Unlocked</span></div>
+          <div class="trick-desc">The classic polite greeting for friends.</div>
+        </div>
+      </div>
+    </div>
+    <div class="trick-preview">
+       <svg id="trick-preview-svg" width="180" height="200" viewBox="0 0 260 300" xmlns="http://www.w3.org/2000/svg">
+          <ellipse cx="125" cy="195" rx="75" ry="60" fill="#D4956A"/>
+          <ellipse cx="125" cy="105" rx="58" ry="52" fill="#D4956A"/>
+          <ellipse cx="125" cy="118" rx="32" ry="24" fill="#E8C4A0"/>
+          <ellipse cx="125" cy="107" rx="13" ry="9" fill="#2C1810"/>
+          <circle cx="101" cy="92" r="6" fill="#2C1810"/>
+          <circle cx="149" cy="92" r="6" fill="#2C1810"/>
+       </svg>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="logo">B<span>.</span>ORK</div>
+  <p>© 2026 BORK AI Companion. All rights reserved.</p>
+  <p style="font-size: 0.7rem; margin-top: 2rem;">Designed with ❤️ for AI dog lovers everywhere.</p>
+</footer>
+
+<script>
+// ============ CURSOR LOGIC ============
+const cursor = document.getElementById('cursor');
+const cursorTrail = document.getElementById('cursor-trail');
+let mouseX = 0, mouseY = 0;
+let trailX = 0, trailY = 0;
+
+document.addEventListener('mousemove', e => {
+  mouseX = e.clientX;
+  mouseY = e.clientY;
+  cursor.style.left = mouseX + 'px';
+  cursor.style.top = mouseY + 'px';
+});
+
+// Smooth trail
+function animateTrail() {
+  trailX += (mouseX - trailX) * 0.15;
+  trailY += (mouseY - trailY) * 0.15;
+  cursorTrail.style.left = trailX + 'px';
+  cursorTrail.style.top = trailY + 'px';
+  requestAnimationFrame(animateTrail);
+}
+animateTrail();
+
+// Cursor scaling on interactive elements
+const interactables = document.querySelectorAll('a, button, .play-card, .trick-item, .action-btn');
+interactables.forEach(el => {
+  el.addEventListener('mouseenter', () => cursor.classList.add('big'));
+  el.addEventListener('mouseleave', () => cursor.classList.remove('big'));
+});
+
+// ============ DOG EYE TRACKING ============
+const leftEye = document.getElementById('left-eye');
+const rightEye = document.getElementById('right-eye');
+const mainDog = document.getElementById('dog-svg-container');
+
+function getEyeMovement(eyeEl) {
+  const rect = eyeEl.getBoundingClientRect();
+  const eyeX = rect.left + rect.width / 2;
+  const eyeY = rect.top + rect.height / 2;
+  const angle = Math.atan2(mouseY - eyeY, mouseX - eyeX);
+  const distance = Math.min(4, Math.hypot(mouseX - eyeX, mouseY - eyeY) / 40);
+  return {
+    x: Math.cos(angle) * distance,
+    y: Math.sin(angle) * distance
+  };
+}
+
+function updateEyes() {
+  const leftMove = getEyeMovement(leftEye);
+  const rightMove = getEyeMovement(rightEye);
+  
+  // Apply only to pupils (inner circles)
+  const leftPupils = leftEye.querySelectorAll('ellipse:not(:first-child)');
+  const rightPupils = rightEye.querySelectorAll('ellipse:not(:first-child)');
+  
+  leftPupils.forEach(p => p.style.transform = `translate(${leftMove.x}px, ${leftMove.y}px)`);
+  rightPupils.forEach(p => p.style.transform = `translate(${rightMove.x}px, ${rightMove.y}px)`);
+  
+  // Slight head tilt
+  const containerRect = mainDog.getBoundingClientRect();
+  const centerX = containerRect.left + containerRect.width / 2;
+  const tilt = (mouseX - centerX) / 80;
+  mainDog.style.transform = `rotate(${Math.min(10, Math.max(-10, tilt))}deg)`;
+  
+  requestAnimationFrame(updateEyes);
+}
+updateEyes();
+
+// ============ STATS SYSTEM ============
+let stats = {
+  happy: 85,
+  energy: 72,
+  hunger: 40,
+  love: 90
+};
+
+function updateStats() {
+  const h = Math.round(stats.happy);
+  const e = Math.round(stats.energy);
+  const hu = Math.round(stats.hunger);
+  const l = Math.round(stats.love);
+
+  document.getElementById('happy-val').innerText = h + '%';
+  document.getElementById('happy-fill').style.width = h + '%';
+  
+  document.getElementById('energy-val').innerText = e + '%';
+  document.getElementById('energy-fill').style.width = e + '%';
+  
+  document.getElementById('hunger-val').innerText = hu + '%';
+  document.getElementById('hunger-fill').style.width = hu + '%';
+  
+  document.getElementById('love-val').innerText = l + '%';
+  document.getElementById('love-fill').style.width = l + '%';
+
+  // Update mood badge
+  const badge = document.getElementById('mood-badge');
+  if(stats.happy > 80) badge.innerText = '😊 Happy';
+  else if(stats.happy > 50) badge.innerText = '😐 Chill';
+  else badge.innerText = '😢 Sad';
+}
+
+// ============ PLAYGROUND ACTIONS ============
+const playDog = document.getElementById('play-dog');
+const playground = document.getElementById('dog-playground');
+
+function playAction(type) {
+  if(type === 'ball') {
+    const ball = document.createElement('div');
+    ball.className = 'food-item';
+    ball.innerText = '🎾';
+    ball.style.left = '80%';
+    ball.style.top = '20%';
+    playground.appendChild(ball);
+    
+    // Dog runs to ball
+    setTimeout(() => {
+      playDog.style.left = '80%';
+      stats.energy = Math.max(0, stats.energy - 5);
+      stats.happy = Math.min(100, stats.happy + 8);
+      updateStats();
+    }, 500);
+    
+    setTimeout(() => {
+      ball.remove();
+      playDog.style.left = '50%';
+    }, 2000);
+  }
+  
+  if(type === 'bone') {
+    const bone = document.createElement('div');
+    bone.className = 'food-item';
+    bone.innerText = '🍖';
+    bone.style.left = '50%';
+    bone.style.top = '50%';
+    playground.appendChild(bone);
+    
+    stats.hunger = Math.max(0, stats.hunger - 15);
+    stats.happy = Math.min(100, stats.happy + 5);
+    updateStats();
+    
+    setTimeout(() => bone.remove(), 1500);
+  }
+
+  if(type === 'love' || type === 'pet') {
+    for(let i=0; i<5; i++) {
+      const heart = document.createElement('div');
+      heart.className = 'heart-pop';
+      heart.innerText = '❤️';
+      heart.style.left = (40 + Math.random() * 20) + '%';
+      heart.style.top = (40 + Math.random() * 20) + '%';
+      playground.appendChild(heart);
+      setTimeout(() => heart.remove(), 1000);
+    }
+    stats.love = Math.min(100, stats.love + 5);
+    stats.happy = Math.min(100, stats.happy + 5);
+    updateStats();
+  }
+}
+
+// ============ TRICKS SYSTEM ============
+function performTrick(trick) {
+  const svg = document.getElementById('trick-preview-svg');
+  if(trick === 'spin') {
+    svg.style.animation = 'spin 0.8s ease-in-out';
+    setTimeout(() => svg.style.animation = '', 800);
+  }
+  if(trick === 'jump') {
+    svg.style.animation = 'bounce 0.6s ease-out';
+    setTimeout(() => svg.style.animation = '', 600);
+  }
+  if(trick === 'shake') {
+    svg.style.animation = 'shake 0.5s ease-in-out';
+    setTimeout(() => svg.style.animation = '', 500);
+  }
+  stats.happy = Math.min(100, stats.happy + 3);
+  updateStats();
+}
+
+// ============ CHAT SYSTEM ============
+const chatInput = document.getElementById('chat-input');
+const chatMessages = document.getElementById('chat-messages');
+
+const dogResponses = [
+  "Woof! That sounds like fun! 🐾",
+  "Ruff ruff! I'm so happy you're here!",
+  "*Wags tail excitedly*",
+  "Can we go for a walk? Please? 🌳",
+  "I love it when we talk like this! ❤️",
+  "Did you say... TREAT? 🍖"
+];
+
+async function sendMessage() {
+  const text = chatInput.value.trim();
+  if(!text) return;
+  
+  // User message
+  const userEl = document.createElement('div');
+  userEl.className = 'msg user';
+  userEl.innerHTML = `<div class=\"msg-bubble\">${text}</div>`;
+  chatMessages.appendChild(userEl);
+  chatInput.value = '';
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+
+  // Typing indicator
+  const typingEl = document.createElement('div');
+  typingEl.className = 'msg dog';
+  typingEl.innerHTML = `<div class=\"msg-avatar\">🐾</div><div class=\"msg-bubble typing-dots\"><span></span><span></span><span></span></div>`;
+  chatMessages.appendChild(typingEl);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+
+  // Fake AI Delay
+  await new Promise(r => setTimeout(r, 1500));
+  typingEl.remove();
+
+  // Try to use a real API if available, else fallback
+  try {
+    const reply = dogResponses[Math.floor(Math.random() * dogResponses.length)];
+    const dogEl = document.createElement('div');
+    dogEl.className = 'msg dog';
+    dogEl.innerHTML = `<div class=\"msg-avatar\">🐾</div><div class=\"msg-bubble\">${reply}</div>`;
+    dogEl.style.animation = 'slide-in 0.3s ease';
+    chatMessages.appendChild(dogEl);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    stats.love = Math.min(100, stats.love + 2);
+    updateStats();
+  } catch(err) {
+    typingEl.remove();
+    const fallback = dogResponses[Math.floor(Math.random() * dogResponses.length)];
+    const dogEl = document.createElement('div');
+    dogEl.className = 'msg dog';
+    dogEl.innerHTML = `<div class=\"msg-avatar\">🐾</div><div class=\"msg-bubble\">${fallback}</div>`;
+    dogEl.style.animation = 'slide-in 0.3s ease';
+    chatMessages.appendChild(dogEl);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+}
+chatInput.addEventListener('keydown', e => { if (e.key === 'Enter') sendMessage(); });
+
+// ============ SCROLL REVEAL ============
+const reveals = document.querySelectorAll('.reveal');
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.1 });
+reveals.forEach(r => obs.observe(r));
+
+// ============ STAT DECAY (Real-time feeling) ============
+setInterval(() => {
+  stats.happy = Math.max(0, stats.happy - 0.1);
+  stats.energy = Math.max(0, stats.energy - 0.05);
+  stats.hunger = Math.min(100, stats.hunger + 0.1);
+  updateStats();
+}, 5000);
+
+</script>
+</body>
+</html>
