@@ -255,7 +255,7 @@ function parseMoodFromReply(t){
   return 'happy';
 }
 
-const OPENROUTER_API_KEY='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';
+const OPENROUTER_API_KEY=import.meta.env.VITE_API_KEY;
 const OR_MODEL='anthropic/claude-3-haiku';
 
 /* ─── COMPONENT ────────────────────────────────────────────── */
